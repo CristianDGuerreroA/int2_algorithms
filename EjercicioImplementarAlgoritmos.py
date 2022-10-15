@@ -127,36 +127,42 @@ def generate_sub_tree(feature_name, train_data, label, class_list):
         for c in class_list: #for each class
             class_count = feature_value_data[feature_value_data[label] == c].shape[0] #count of class c
 
-    newcolumns = copy.deepcopy(columns)
-    newcolumns.remove(idx)
-    for key in mydict:
-        newrows = []
-        for i in rows:
-            if data[i][idx] == key:
-                newrows.append(i)
-        # print(newrows)
-        temp = buildTree(data, newrows, newcolumns)
-        temp.decision = key
-        root.childs.append(temp)
-    return root
+            if class_count == count: #count of feature_value = count of class (pure class)
+                tree[feature_value] = c #adding node to the tree
+                train_data = train_data[train_data[feature_name] != feature_value] #removing rows with feature_value
+                assigned_to_node = True
+        if not assigned_to_node: #not pure class
+            tree[feature_value] = "?" #should extend the node, so the branch is marked with ?
+            
+    return tree, train_data
+
+def make_tree(root, prev_feature_value, train_data, label, class_list):
+    if train_data.shape[0] != 0: #if dataset becomes enpty after updating
+        max_info_feature = find_most_informative_feature(train_data, label, class_list) #most informative feature
+        tree, train_data = generate_sub_tree(max_info_feature, train_data, label, class_list) #getting tree node and updated dataset
+        next_root = None
+        
+        if prev_feature_value != None: #add to intermediate node of the tree
+            root[prev_feature_value] = dict()
+            root[prev_feature_value][max_info_feature] = tree
+            next_root = root[prev_feature_value][max_info_feature]
+        else: #add to root of the tree
+            root[max_info_feature] = tree
+            next_root = root[max_info_feature]
+        
+        for node, branch in list(next_root.items()): #iterating the tree node
+            if branch == "?": #if it is expandable
+                feature_value_data = train_data[train_data[max_info_feature] == node] #using the updated dataset
+                make_tree(next_root, node, feature_value_data, label, class_list) #recursive call with updated dataset
+
+def id3(train_data_m, label):
+    train_data = train_data_m.copy() #getting a copy of the dataset
+    tree = {} #tree which will be updated
+    class_list = train_data[label].unique() #getting unqiue classes of the label
+    make_tree(tree, None, train_data_m, label, class_list) #start calling recursion
+    return tree
 
 
-def traverse(root):
-    print(root.decision)
-    print(root.value)
-
-    n = len(root.childs)
-    if n > 0:
-        for i in range(0, n):
-            traverse(root.childs[i])
-
-
-def calculate(attribute, X, data_csv):
-    rows = [i for i in range(0, 14)]
-    columns = [i for i in range(0, 4)]
-    root = buildTree(X, rows, columns, attribute)
-    root.decision = 'Start'
-    traverse(root)
 
 def predict(tree, instance):
     if not isinstance(tree, dict): #if it is leaf node
@@ -201,70 +207,8 @@ def conv_transaction (data_csv):
     return transaction
 
 def fpg_indicator(data_csv):
-    if traverse_matrix_boolean_string(data_csv) == True: 
-        transaction = conv_transaction(data_csv)  
-        df = pd.DataFrame(transaction, columns=["items"]) 
-        # Put 1 to Each Item For Making Countable Table, to be able to perform Group By
-        df["incident_count"] = 1 
-
-        #  Delete NaN Items from Dataset
-        indexNames = df[df['items'] == "nan" ].index
-        df.drop(indexNames , inplace=True)
-
-        # Making a New Appropriate Pandas DataFrame for Visualizations  
-        df_table = df.groupby("items").sum().sort_values("incident_count", ascending=False).reset_index()
-
-        #  Initial Visualizations
-        df_table.head(5).style.background_gradient(cmap='Blues')
-        # to have a same origin
-        df_table["all"] = "Top 50 items" 
-
-        # creating tree map using plotly
-        fig = px.treemap(df_table.head(50), path=['all', "items"], values='incident_count',
-                  color=df_table["incident_count"].head(50), hover_data=['items'],
-                  color_continuous_scale='Blues',
-                )
-        # ploting the treemap
-        fig.show()
-        # Transform Every Transaction to Seperate List & Gather Them into Numpy Array
-        transaction = []
-        for i in range(dataset.shape[0]):
-            transaction.append([str(dataset.values[i,j]) for j in range(dataset.shape[1])])
-
-        # creating the numpy array of the transactions
-        transaction = np.array(transaction)
-
-        # initializing the transactionEncoder
-        te = TransactionEncoder()
-        te_ary = te.fit(transaction).transform(transaction)
-        dataset = pd.DataFrame(te_ary, columns=te.columns_)
-
-        # dataset after encoded
-        dataset.head()
-        
-        # select top 30 items
-        first30 = df_table["items"].head(30).values 
-
-        # Extract Top 30
-        dataset = dataset.loc[:,first30] 
-
-        # shape of the dataset
-        dataset.shape
-        #running the fpgrowth algorithm
-        res=fpgrowth(dataset,min_support=0.05, use_colnames=True)
-
-        # printing top 10
-        res.head(10)
-        # importing required module
-
-
-        # creating asssociation rules
-        res=association_rules(res, metric="lift", min_threshold=1)
-
-        # printing association rules
-        res
-        # Sort values based on confidence
-        res.sort_values("confidence",ascending=False)        
+    if traverse_matrix_boolean_string(data_csv) == True:
+        messagebox.showinfo("", "Que se dice desde el FPGrwoth")   
 
 ##########################################################################################################################
 def rf_indicator(data_csv):
@@ -279,15 +223,16 @@ def rl_indicator(data_csv):
     else:
         features = data_csv["age"]
         labels = data_csv["speed"]
-        slope, intercept, r, p, std_err = stats.linregress(features, labels)
+        slope_, intercept_, r, p, std_err = stats.linregress(features, labels)
 
-        lineY = list(map(lineFunc, features))
+        lineY = list(map(lambda x : slope_ * x + intercept_, features))
         print (lineY)
 
         plt.scatter(features, labels)
         plt.plot(features, lineY)
         plt.show()
 
+ 
 
 def Dendograma(dataset):
 
@@ -304,46 +249,6 @@ def den_indicator(data_csv):
     if traverse_matrix_boolean_string(data_csv) == True:
         Dendograma(data_csv)
         messagebox.showinfo("", "Que se dice desde el Dendograma")
-
-#################################################################################################################################
-def AlgoritmoPCA(dataframe):
-    #normalizamos los datos
-    scaler=StandardScaler()
-    df = dataframe.drop(['comprar'], axis=1) # quito la variable dependiente "Y"
-    scaler.fit(df) # calculo la media para poder hacer la transformacion
-    X_scaled=scaler.transform(df)# Ahora si, escalo los datos y los normalizo
-
-    #Instanciamos objeto PCA y aplicamos
-    pca=PCA(n_components=9) # Otra opción es instanciar pca sólo con dimensiones nuevas hasta obtener un mínimo "explicado" ej.: pca=PCA(.85)
-    pca.fit(X_scaled) # obtener los componentes principales
-    X_pca=pca.transform(X_scaled) # convertimos nuestros datos con las nuevas dimensiones de PCA
-
-    #Vemos que con 5 componentes tenemos algo mas del 85% de varianza explicada
-
-    #graficamos el acumulado de varianza explicada en las nuevas dimensiones
-    plt.plot(np.cumsum(pca.explained_variance_ratio_))
-    plt.xlabel('number of components')
-    plt.ylabel('cumulative explained variance')
-    plt.show()
-
-    #graficamos en 2 Dimensiones, tomando los 2 primeros componentes principales
-    Xax=X_pca[:,0]
-    Yax=X_pca[:,1]
-    labels=dataframe['comprar'].values
-    cdict={0:'red',1:'green'}
-    labl={0:'Alquilar',1:'Comprar'}
-    marker={0:'*',1:'o'}
-    alpha={0:.3, 1:.5}
-    fig,ax=plt.subplots(figsize=(7,5))
-    fig.patch.set_facecolor('white')
-    for l in np.unique(labels):
-        ix=np.where(labels==l)
-        ax.scatter(Xax[ix],Yax[ix],c=cdict[l],label=labl[l],s=40,marker=marker[l],alpha=alpha[l])
-
-    plt.xlabel("First Principal Component",fontsize=14)
-    plt.ylabel("Second Principal Component",fontsize=14)
-    plt.legend()
-    plt.show()
 
 def AlgoritmoPCA(dataframe):
     #normalizamos los datos
@@ -389,6 +294,8 @@ def pca_indicator(data_csv):
         messagebox.showerror("Error - File", "No se pueden cargar datos String en el DataSet para PCA")
     else:
         AlgoritmoPCA(data_csv)
+
+
 
 
 ################################################################################################################
