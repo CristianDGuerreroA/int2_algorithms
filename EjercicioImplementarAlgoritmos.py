@@ -59,6 +59,105 @@ def rf_indicator(data_csv):
     if traverse_matrix_boolean_string(data_csv) == True:
         messagebox.showinfo("", "Que se dice desde el Random Forest")
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def rl_indicator(data_csv):
     if traverse_matrix_boolean_string(data_csv) == True:
         messagebox.showerror("Error - File", "No se pueden cargar datos String en el DataSet para Regresión Lineal")
@@ -67,17 +166,16 @@ def den_indicator(data_csv):
     if traverse_matrix_boolean_string(data_csv) == True:
         messagebox.showinfo("", "Que se dice desde el Dendograma")
 
-
 def pca_indicator(data_csv):
     if traverse_matrix_boolean_string(data_csv) == True:
-        messagebox.showinfo("", "Que se dice desde el Random Forest")
+        messagebox.showerror("Error - File", "No se pueden cargar datos String en el DataSet para PCA")
 
 if __name__ == "__main__":
     route_csv = NULL
     data_csv = NULL
     
     route_csv, data_csv = call_csv(route_csv, data_csv)
-    view_csv(route_csv, data_csv)
+    #view_csv(route_csv, data_csv)
   
     top = Tk() 
     display_gui(top, data_csv)
