@@ -6,6 +6,7 @@ import pandas as pd
 from os import path
 
 
+
 def display_gui(top, data_csv):
     rad_btn_var = IntVar()  
     top.geometry("700x100")  
@@ -31,7 +32,7 @@ def call_csv(route_csv, data_csv):
     
 def view_csv(route_csv, data_csv):
     print('la ruta', route_csv)
-    print(data_csv)
+    print(data_csv) 
 
 def traverse_matrix_boolean_string (data_csv):
     df = pd.DataFrame(data_csv)
@@ -153,17 +154,46 @@ def rf_indicator(data_csv):
 
 
 
+from sklearn.cluster import AgglomerativeClustering
+import scipy.cluster.hierarchy as sch
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
 
 
-
-
+def lineFunc(x,slope,intercept):
+    return slope * x + intercept    
 
 def rl_indicator(data_csv):
     if traverse_matrix_boolean_string(data_csv) == True:
         messagebox.showerror("Error - File", "No se pueden cargar datos String en el DataSet para Regresión Lineal")
+    else:
+        features = data_csv["age"]
+        labels = data_csv["speed"]
+        slope, intercept, r, p, std_err = stats.linregress(features, labels)
+
+        lineY = list(map(lineFunc, features))
+        print (lineY)
+
+        plt.scatter(features, labels)
+        plt.plot(features, lineY)
+        plt.show()
+
+
+def Dendograma(dataset):
+
+    X = dataset.iloc[:, [3, 4]].values
+
+    dendrogram = sch.dendrogram(sch.linkage(X, method='ward'))
+
+    plt.title('Dendograma')
+    plt.xlabel('Clientes')
+    plt.ylabel('Distancias Euclidianas')
+    plt.show()
 
 def den_indicator(data_csv):
     if traverse_matrix_boolean_string(data_csv) == True:
+        Dendograma(data_csv)
         messagebox.showinfo("", "Que se dice desde el Dendograma")
 
 def pca_indicator(data_csv):
