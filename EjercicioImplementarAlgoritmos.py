@@ -20,6 +20,13 @@ plt.rcParams['figure.figsize'] = (16, 9)
 plt.style.use('ggplot')
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from collections import defaultdict
+from itertools import chain, combinations
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
+from sklearn import metrics
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
 
 
@@ -197,23 +204,56 @@ def id3_indicator(data_csv):
         print (accuracy)
 
 ########################################################################################################################
-
-def conv_transaction (data_csv):
-    transaction = []
-    for i in range(0, data_csv.shape[0]):
-        for j in range(0, data_csv.shape[1]):
-            transaction.append(data_csv.values[i,j])
-    transaction = np.array(transaction)
-    return transaction
-
+def convert_fpg(data_csv):
+    dataset = [['Milk', 'Onion', 'Nutmeg', 'Kidney Beans', 'Eggs', 'Yogurt'],
+           ['Dill', 'Onion', 'Nutmeg', 'Kidney Beans', 'Eggs', 'Yogurt'],
+           ['Milk', 'Apple', 'Kidney Beans', 'Eggs'],
+           ['Milk', 'Unicorn', 'Corn', 'Kidney Beans', 'Yogurt'],
+           ['Corn', 'Onion', 'Onion', 'Kidney Beans', 'Ice cream', 'Eggs']]
+    
+    te = TransactionEncoder()
+    te_ary = te.fit(dataset).transform(dataset)
+    df = pd.DataFrame(te_ary, columns=te.columns_)
+    print(df)
+    print(fpgrowth(df, min_support=0.5))
+    print(fpgrowth(df, min_support=0.5, use_colnames=True))
+    
 def fpg_indicator(data_csv):
     if traverse_matrix_boolean_string(data_csv) == True:
+        convert_fpg(data_csv)
         messagebox.showinfo("", "Que se dice desde el FPGrwoth")   
 
 ##########################################################################################################################
 def rf_indicator(data_csv):
     if traverse_matrix_boolean_string(data_csv) == True:
-        messagebox.showinfo("", "Que se dice desde el Random Forest")
+        #First File
+        X = data_csv.iloc[:, 0:4].values
+        y = data_csv.iloc[:, 4].values
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+        sc = StandardScaler()
+        X_train = sc.fit_transform(X_train)
+        X_test = sc.transform(X_test)
+        regressor = RandomForestRegressor(n_estimators=20, random_state=0)
+        regressor.fit(X_train, y_train)
+        y_pred = regressor.predict(X_test)
+        print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, y_pred))
+        print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred))
+        print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))
+
+        #Second file
+        #X = data_csv.iloc[:, 0:4].values
+        #y = data_csv.iloc[:, 4].values
+        #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+        #sc = StandardScaler()
+        #X_train = sc.fit_transform(X_train)
+        #X_test = sc.transform(X_test)
+        #regressor = RandomForestRegressor(n_estimators=20, random_state=0)
+        #regressor.fit(X_train, y_train)
+        #y_pred = regressor.predict(X_test)
+        #print(confusion_matrix(y_test,y_pred))
+        #print(classification_report(y_test,y_pred))
+        #print(accuracy_score(y_test, y_pred))
+        
 
 
 ############################################################################################################################
