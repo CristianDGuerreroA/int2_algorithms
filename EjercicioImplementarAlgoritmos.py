@@ -4,7 +4,7 @@ from tkinter import *
 from tkinter import filedialog
 from tkinter import messagebox
 import pandas as pd
-from os import path
+from os import path, remove
 import numpy as np
 import math
 import copy
@@ -205,11 +205,18 @@ def id3_indicator(data_csv):
 
 ########################################################################################################################
 def convert_fpg(data_csv):
-    dataset = [['Milk', 'Onion', 'Nutmeg', 'Kidney Beans', 'Eggs', 'Yogurt'],
-           ['Dill', 'Onion', 'Nutmeg', 'Kidney Beans', 'Eggs', 'Yogurt'],
-           ['Milk', 'Apple', 'Kidney Beans', 'Eggs'],
-           ['Milk', 'Unicorn', 'Corn', 'Kidney Beans', 'Yogurt'],
-           ['Corn', 'Onion', 'Onion', 'Kidney Beans', 'Ice cream', 'Eggs']]
+    data = []
+    dataset = []
+    data = data_csv.values.tolist()
+    for row in data:
+        var = []
+        for item in row:
+            var.append(item)
+            if str(item) == 'nan':
+                var.remove(item)
+        dataset.append(var)                
+        
+    print(dataset)
     
     te = TransactionEncoder()
     te_ary = te.fit(dataset).transform(dataset)
@@ -272,7 +279,7 @@ def rl_indicator(data_csv):
         plt.plot(features, lineY)
         plt.show()
 
- 
+
 
 def Dendograma(dataset):
 
