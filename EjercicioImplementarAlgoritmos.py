@@ -38,15 +38,15 @@ def display_gui(top, data_csv):
     top.geometry("700x100")  
     
     
-    top.title('Procesador de algoritmos - Inteligentes 2')  
-#    btn_csv_file = Button(top, font=("Verdana", 12),fg='green', activebackground= 'green', highlightbackground='green',text = "Cargar Archivo .csv", command = lambda: call_csv(route_csv,data_csv)).grid(row=0, column=3) 
+    top.title('Procesador de algoritmos - Sistemas Inteligentes 2')  
+ 
     Radiobutton(top,font=("Calibri", 13),text="ID3  ", value=1, variable=rad_btn_var, indicatoron= 0, command= lambda: id3_indicator(data_csv)).grid(row=10, column=0)
     Radiobutton(top,font=("Calibri", 13),text="FPGrowth  ",value=2,variable=rad_btn_var, indicatoron= 0, command= lambda: fpg_indicator(data_csv)).grid(row=10, column=1)
     Radiobutton(top,font=("Calibri", 13),text="Random Forest  ", value=3, variable=rad_btn_var, indicatoron= 0, command= lambda: rf_indicator(data_csv)).grid(row=10, column=2)
     Radiobutton(top,font=("Calibri", 13),text="Regresión Lineal  ",value=4,variable=rad_btn_var, indicatoron= 0, command= lambda: rl_indicator(data_csv)).grid(row=10, column=3)
     Radiobutton(top,font=("Calibri", 13),text="Dendograma  ", value=5, variable=rad_btn_var, indicatoron= 0, command= lambda: den_indicator(data_csv)).grid(row=10, column=4)
     Radiobutton(top,font=("Calibri", 13),text="PCA",value=6,variable=rad_btn_var, indicatoron= 0, command= lambda: pca_indicator(data_csv)).grid(row=10, column=5)
-#    btn_process_algoritm = Button(top, font=("Verdana", 12),fg='blue', activebackground= 'blue', highlightbackground='blue',text = "Procesar Algoritmo", command= lambda: call_algorithms(rad_btn_var.get())).grid(row=15, column=3) 
+
     top.mainloop() 
     
 def call_csv(route_csv, data_csv):
@@ -231,20 +231,19 @@ def convert_fpg(data_csv):
             if str(item) == 'nan':
                 var.remove(item)
         dataset.append(var)                
-        
-    print(dataset)
     
     te = TransactionEncoder()
     te_ary = te.fit(dataset).transform(dataset)
     df = pd.DataFrame(te_ary, columns=te.columns_)
-    print(df)
-    print(fpgrowth(df, min_support=0.5))
-    print(fpgrowth(df, min_support=0.5, use_colnames=True))
+    #print(df)
+    #print(fpgrowth(df, min_support=0.5))
+    messagebox.showinfo('FPGrwoth:', tabulate(fpgrowth(df, min_support=0.5), headers = 'keys', tablefmt = 'psql')) 
+    #print(fpgrowth(df, min_support=0.5, use_colnames=True))
+    messagebox.showinfo('FPGrwoth con valores de columna:', tabulate(fpgrowth(df, min_support=0.5, use_colnames=True), headers = 'keys', tablefmt = 'psql')) 
     
 def fpg_indicator(data_csv):
     if traverse_matrix_boolean_string(data_csv) == True:
         convert_fpg(data_csv)
-        messagebox.showinfo("", "Que se dice desde el FPGrwoth")   
 
 ##########################################################################################################################
 #Métodos necesarios apra calcular el random forest
@@ -260,9 +259,12 @@ def rf_indicator(data_csv):
         regressor = RandomForestRegressor(n_estimators=20, random_state=0)
         regressor.fit(X_train, y_train)
         y_pred = regressor.predict(X_test)
-        print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, y_pred))
-        print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred))
-        print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))
+        #print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, y_pred))
+        messagebox.showinfo('Error absoluto medio: ', metrics.mean_absolute_error(y_test, y_pred))   
+       #print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred))
+        messagebox.showinfo('Error cuadrático medio: ', metrics.mean_squared_error(y_test, y_pred))   
+        #print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))
+        messagebox.showinfo('Error cuadrático medio de la raíz: ', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))
 
         #Second file
         #X = data_csv.iloc[:, 0:4].values
@@ -274,10 +276,12 @@ def rf_indicator(data_csv):
         #regressor = RandomForestRegressor(n_estimators=20, random_state=0)
         #regressor.fit(X_train, y_train)
         #y_pred = regressor.predict(X_test)
-        #print(confusion_matrix(y_test,y_pred))
-        #print(classification_report(y_test,y_pred))
-        #print(accuracy_score(y_test, y_pred))
-        
+        ##print(confusion_matrix(y_test,y_pred))
+        #messagebox.showinfo('Matriz de confusión: ', confusion_matrix(y_test,y_pred))
+        ##print(classification_report(y_test,y_pred))
+        #messagebox.showinfo('Reporte de clasificación: ', classification_report(y_test,y_pred))
+        ##print(accuracy_score(y_test, y_pred))
+        #messagebox.showinfo('Puntuación de precisión: ', accuracy_score(y_test, y_pred)
 
 
 ############################################################################################################################
@@ -313,7 +317,6 @@ def Dendograma(dataset):
 def den_indicator(data_csv):
     if traverse_matrix_boolean_string(data_csv) == True:
         Dendograma(data_csv)
-        messagebox.showinfo("", "Que se dice desde el Dendograma")
 
 ################################################################################################################################
 #Métodos necesarios para calcular el PCA
