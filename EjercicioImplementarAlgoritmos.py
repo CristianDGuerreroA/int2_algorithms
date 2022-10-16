@@ -30,6 +30,7 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 from PIL import Image
 from IPython.display import display
 from tabulate import tabulate
+from sklearn.metrics import mean_squared_error
 
 
 
@@ -256,33 +257,67 @@ def rf_indicator(data_csv):
         sc = StandardScaler()
         X_train = sc.fit_transform(X_train)
         X_test = sc.transform(X_test)
-        regressor = RandomForestRegressor(n_estimators=20, random_state=0)
-        regressor.fit(X_train, y_train)
-        y_pred = regressor.predict(X_test)
-        #print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, y_pred))
-        messagebox.showinfo('Error absoluto medio: ', metrics.mean_absolute_error(y_test, y_pred))   
-       #print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred))
-        messagebox.showinfo('Error cuadrático medio: ', metrics.mean_squared_error(y_test, y_pred))   
-        #print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))
-        messagebox.showinfo('Error cuadrático medio de la raíz: ', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))
 
-        #Second file
-        #X = data_csv.iloc[:, 0:4].values
-        #y = data_csv.iloc[:, 4].values
-        #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-        #sc = StandardScaler()
-        #X_train = sc.fit_transform(X_train)
-        #X_test = sc.transform(X_test)
-        #regressor = RandomForestRegressor(n_estimators=20, random_state=0)
-        #regressor.fit(X_train, y_train)
-        #y_pred = regressor.predict(X_test)
-        ##print(confusion_matrix(y_test,y_pred))
-        #messagebox.showinfo('Matriz de confusión: ', confusion_matrix(y_test,y_pred))
-        ##print(classification_report(y_test,y_pred))
-        #messagebox.showinfo('Reporte de clasificación: ', classification_report(y_test,y_pred))
-        ##print(accuracy_score(y_test, y_pred))
-        #messagebox.showinfo('Puntuación de precisión: ', accuracy_score(y_test, y_pred)
+        modelo = RandomForestRegressor(
+            n_estimators = 20,
+            criterion    = 'mse',
+            max_depth    = None,
+            max_features = 'auto',
+            oob_score    = False,
+            n_jobs       = -1,
+            random_state = 0
+         )
+        
+        modelo.fit(X_train, y_train)
+        
+        predicciones = modelo.predict(X = X_test)
 
+        rmse = mean_squared_error(
+            y_true  = y_test,
+            y_pred  = predicciones,
+            squared = False
+            )
+        print(f"El error (rmse) de test es: {rmse}")
+        
+        train_scores = []
+        oob_scores   = []
+
+        estimator_range = range(1, 150, 5)
+
+        for n_estimators in estimator_range:
+            modelo = RandomForestRegressor(
+                n_estimators = n_estimators,
+                criterion    = 'mse',
+                max_depth    = None,
+                max_features = 'auto',
+                oob_score    = True,
+                n_jobs       = -1,
+                random_state = 0
+             )
+        modelo.fit(X_train, y_train)
+        train_scores.append(modelo.score(X_train, y_train))
+        oob_scores.append(modelo.oob_score_)
+        y_pred = modelo.predict(X_test)
+
+        x_values = range(1, len(train_scores) + 1)
+        y_values = range(1, len(oob_scores) + 1)
+        
+        # Gráfico con la evolución de los errores
+        fig, ax = plt.subplots(figsize=(6, 3.84))
+        ax.plot(x_values, train_scores, label="train scores")
+        ax.plot(y_values, oob_scores, label="out-of-bag scores")
+        ax.plot(estimator_range[np.argmax(oob_scores)], max(oob_scores),
+            marker='o', color = "red", label="max score")
+        ax.set_ylabel("R^2")
+        ax.set_xlabel("n_estimators")
+        ax.set_title("Evolución del out-of-bag-error vs número árboles")
+        plt.legend();
+        plt.show()
+        #print(f"Valor óptimo de n_estimators: {estimator_range[np.argmax(oob_scores)]}")
+        messagebox.showinfo('Valor óptimo para n_estimators ', {estimator_range[np.argmax(oob_scores)]})
+        messagebox.showinfo('Error absoluto medio: ', metrics.mean_absolute_error(y_test, y_pred))
+        messagebox.showinfo('Error cuadrático medio: ', metrics.mean_squared_error(y_test, y_pred))
+        messagebox.showinfo('Error cuadrático medio de la raíz: ', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))  
 
 ############################################################################################################################
 #Métodos necesarios apra calcular la regresión lineal
