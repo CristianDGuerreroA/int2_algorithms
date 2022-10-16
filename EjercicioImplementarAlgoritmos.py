@@ -27,6 +27,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 from sklearn import metrics
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from PIL import Image
+from IPython.display import display
+from tabulate import tabulate
 
 
 
@@ -52,10 +55,15 @@ def call_csv(route_csv, data_csv):
     data_csv = pd.read_csv(route_csv)
     return route_csv, data_csv
     
-    
-def view_csv(route_csv, data_csv):
+def view_csv(top,route_csv, data_csv):
     print('la ruta', route_csv)
-    print(data_csv)
+    messagebox.showinfo('Ruta de carga para el archivo .csv', route_csv)
+    #messagebox.showinfo('Datos del archivo .csv', data_csv)
+    #print(data_csv)
+    df = pd.DataFrame(data_csv)
+    messagebox.showinfo('Datos del archivo .csv', tabulate(df, headers = 'keys', tablefmt = 'psql'))
+    #print(tabulate(df, headers = 'keys', tablefmt = 'psql'))
+    
 
 def traverse_matrix_boolean_string (data_csv):
     df = pd.DataFrame(data_csv)
@@ -64,6 +72,8 @@ def traverse_matrix_boolean_string (data_csv):
         if verify_is_number(values) == False:
             return True
     return False
+###################################################################################################################
+#Métodos necesarios para calcular el ID3
             
 def verify_is_number(values):
     for item in values:
@@ -197,13 +207,19 @@ def evaluate(tree, test_data_m, label):
 def id3_indicator(data_csv):
     if traverse_matrix_boolean_string(data_csv) == True:
         tree = id3(data_csv, 'Play Tennis')
+        messagebox.showinfo('Arbol Generado en ID3', tree)
         #print(tree)
         #Prueba
-        test = ['Sunny','Hot','High','Weak']
-        accuracy = evaluate(test, data_csv, 'Play Tennis')
-        print (accuracy)
+        #test = ['Sunny','Hot','High','Weak']
+        accuracy = evaluate(tree, data_csv, 'Play Tennis')
+        messagebox.showinfo('Valor de exactitud para la prueba con los datos del arbol generado', accuracy)
+        #print ('Valor de exactitud: ',accuracy)
+        im = Image.open("id3_image.png")
+        im.show()
+
 
 ########################################################################################################################
+# Métodos necesarios para calcular el FPGrowth
 def convert_fpg(data_csv):
     data = []
     dataset = []
@@ -231,6 +247,7 @@ def fpg_indicator(data_csv):
         messagebox.showinfo("", "Que se dice desde el FPGrwoth")   
 
 ##########################################################################################################################
+#Métodos necesarios apra calcular el random forest
 def rf_indicator(data_csv):
     if traverse_matrix_boolean_string(data_csv) == True:
         #First File
@@ -264,6 +281,7 @@ def rf_indicator(data_csv):
 
 
 ############################################################################################################################
+#Métodos necesarios apra calcular la regresión lineal
 def rl_indicator(data_csv):
     if traverse_matrix_boolean_string(data_csv) == True:
         messagebox.showerror("Error - File", "No se pueden cargar datos String en el DataSet para Regresión Lineal")
@@ -279,8 +297,8 @@ def rl_indicator(data_csv):
         plt.plot(features, lineY)
         plt.show()
 
-
-
+#############################################################################################################################
+#Métodos necesarios para calcular el dendograma
 def Dendograma(dataset):
 
     X = dataset.iloc[:, [3, 4]].values
@@ -297,6 +315,8 @@ def den_indicator(data_csv):
         Dendograma(data_csv)
         messagebox.showinfo("", "Que se dice desde el Dendograma")
 
+################################################################################################################################
+#Métodos necesarios para calcular el PCA
 def AlgoritmoPCA(dataframe):
     #normalizamos los datos
     scaler=StandardScaler()
@@ -343,17 +363,18 @@ def pca_indicator(data_csv):
         AlgoritmoPCA(data_csv)
 
 
-
-
 ################################################################################################################
+#Main que hace el llamado para la ejecución de todo el proceso
+
 if __name__ == "__main__":
     route_csv = NULL
     data_csv = NULL
+    top = Tk() 
     
     route_csv, data_csv = call_csv(route_csv, data_csv)
-    view_csv(route_csv, data_csv)
+    view_csv(top,route_csv, data_csv)
   
-    top = Tk() 
+    
     display_gui(top, data_csv)
     
      
